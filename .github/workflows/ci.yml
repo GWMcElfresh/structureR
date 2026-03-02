@@ -17,9 +17,10 @@ jobs:
       # Path to the Dockerfile (repo root)
       dockerfile-path: "."
       context: "."
-      # Compile and install the package (handles Rcpp), then run the testthat
-      # suite directly – no devtools required in the container.
-      test-command: "R CMD INSTALL --no-multiarch . && Rscript -e \"library(structureR); testthat::test_dir('tests/testthat', stop_on_failure = TRUE)\""
+      # Run the full package test suite inside the container.
+      # The deps image has all dependencies pre-installed; the workspace is
+      # bind-mounted at /workspace, so devtools::test() picks up the source.
+      test-command: "Rscript -e \"devtools::test(stop_on_failure = TRUE)\""
       # Dependency-file inputs used to compute the cache key
       dependency-files: "DESCRIPTION NAMESPACE"
       # R version to install in the deps image

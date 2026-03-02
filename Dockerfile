@@ -52,9 +52,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy only the dependency declaration files (keeps cache layers tight)
 COPY DESCRIPTION NAMESPACE ./
 
-# Step 1: install remotes and testthat (needed to install other deps and run tests)
+# Step 1: install remotes, devtools, and testthat explicitly so they are always
+# present in the deps image regardless of which DESCRIPTION fields reference them
 RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
-    install.packages(c('remotes', 'testthat'))"
+    install.packages(c('remotes', 'devtools', 'testthat'))"
 
 # Step 2: install all hard dependencies (Imports/Depends) declared in DESCRIPTION
 RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
@@ -78,6 +79,7 @@ WORKDIR /workspace
 COPY . .
 
 # Build and install the package (compiles Rcpp)
-RUN R CMD INSTALL --no-multiarch .
+RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
+    devtools::install('.', upgrade = 'never')"
 
 CMD ["Rscript", "-e", "library(structureR); cat('structureR loaded successfully\\n')"]
