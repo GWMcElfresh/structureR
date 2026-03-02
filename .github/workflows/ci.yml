@@ -19,8 +19,8 @@ jobs:
       context: "."
       # Run the full package test suite inside the container.
       # The deps image has all dependencies pre-installed; the workspace is
-      # bind-mounted at /workspace, so devtools::test() picks up the source.
-      test-command: "Rscript -e \"devtools::test(stop_on_failure = TRUE)\""
+      # bind-mounted at /workspace, so devtools::check() picks up the source.
+      test-command: "Rscript -e \"devtools::check(error_on = 'warning'); print(covr::package_coverage())\""
       # Dependency-file inputs used to compute the cache key
       dependency-files: "DESCRIPTION NAMESPACE"
       # R version to install in the deps image

@@ -29,10 +29,13 @@ ARG SKIP_BASE_DEPS=false
 #   libtiff5-dev       – ragg / tiff
 #   libjpeg-dev        – ragg / jpeg
 #   libwebp-dev        – ragg / webp
-#   libwebpmux-dev     – ragg / webp mux (libwebpmux)
 #   libcairo2-dev      – Cairo / grDevices
 #   libxt-dev          – X11 / grDevices (needed by some R packages)
 #   pandoc             – rmarkdown / devtools (vignette building)
+#   libglpk-dev        – igraph (Suggests)
+#   libhdf5-dev        – hdf5r (Suggests via Seurat)
+#   libbz2-dev         – base R / common
+#   liblzma-dev        – base R / common
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libcurl4-openssl-dev \
         libssl-dev \
@@ -46,11 +49,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libtiff5-dev \
         libjpeg-dev \
         libwebp-dev \
-        libwebpmux-dev \
         libcairo2-dev \
         libxt-dev \
         zlib1g-dev \
         pandoc \
+        libglpk-dev \
+        libhdf5-dev \
+        libbz2-dev \
+        liblzma-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only the dependency declaration files (keeps cache layers tight)
@@ -65,14 +71,9 @@ RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
 RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
     remotes::install_deps('.', dependencies = 'strong')"
 
-# Step 3: install Suggests (best-effort; non-fatal if any optional package fails)
-RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
-    tryCatch( \
-      remotes::install_deps('.', dependencies = TRUE), \
-      error = function(e) { \
-        warning('Some Suggests packages failed to install: ', conditionMessage(e)) \
-      } \
-    )"
+# Step 3: install Suggests. Fail if any fail to ensure robustness for tests.
+RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org'), warn = 2); \
+    remotes::install_deps('.', dependencies = TRUE)"
 
 # ----------------------------------------------------------------------------
 # runtime stage – copy application code and install the package itself
