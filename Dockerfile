@@ -18,7 +18,19 @@ FROM ${BASE_IMAGE} AS deps
 
 ARG SKIP_BASE_DEPS=false
 
-# System libraries required for R package compilation
+# System libraries required for R package compilation.
+# Includes dependencies for devtools, Rcpp, and common bioinformatics packages:
+#   libgit2-dev        – gert (used by devtools/usethis)
+#   libharfbuzz-dev    – textshaping / ragg (used by devtools)
+#   libfribidi-dev     – textshaping / ragg
+#   libfreetype6-dev   – systemfonts / ragg
+#   libfontconfig1-dev – systemfonts
+#   libpng-dev         – ragg / png
+#   libtiff5-dev       – ragg / tiff
+#   libjpeg-dev        – ragg / jpeg
+#   libcairo2-dev      – Cairo / grDevices
+#   libxt-dev          – X11 / grDevices (needed by some R packages)
+#   pandoc             – rmarkdown / devtools (vignette building)
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libcurl4-openssl-dev \
         libssl-dev \
@@ -27,22 +39,35 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libharfbuzz-dev \
         libfribidi-dev \
         libfreetype6-dev \
+        libfontconfig1-dev \
         libpng-dev \
         libtiff5-dev \
         libjpeg-dev \
+        libcairo2-dev \
+        libxt-dev \
         zlib1g-dev \
+        pandoc \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only the dependency declaration files (keeps cache layers tight)
 COPY DESCRIPTION NAMESPACE ./
 
-# Install R package dependencies declared in DESCRIPTION
-# devtools is added here so the test command can call devtools::test()
-RUN Rscript -e " \
-    options(repos = c(CRAN = 'https://cloud.r-project.org')); \
-    install.packages(c('remotes', 'devtools'), quiet = TRUE); \
-    remotes::install_deps('.', dependencies = TRUE, quiet = TRUE) \
-    "
+# Step 1: install remotes and testthat (needed to install other deps and run tests)
+RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
+    install.packages(c('remotes', 'testthat'))"
+
+# Step 2: install all hard dependencies (Imports/Depends) declared in DESCRIPTION
+RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
+    remotes::install_deps('.', dependencies = 'strong')"
+
+# Step 3: install Suggests (best-effort; non-fatal if any optional package fails)
+RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
+    tryCatch( \
+      remotes::install_deps('.', dependencies = TRUE), \
+      error = function(e) { \
+        warning('Some Suggests packages failed to install: ', conditionMessage(e)) \
+      } \
+    )"
 
 # ----------------------------------------------------------------------------
 # runtime stage – copy application code and install the package itself
@@ -53,9 +78,6 @@ WORKDIR /workspace
 COPY . .
 
 # Build and install the package (compiles Rcpp)
-RUN Rscript -e " \
-    options(repos = c(CRAN = 'https://cloud.r-project.org')); \
-    devtools::install('.', upgrade = 'never', quiet = FALSE) \
-    "
+RUN R CMD INSTALL --no-multiarch .
 
 CMD ["Rscript", "-e", "library(structureR); cat('structureR loaded successfully\\n')"]
