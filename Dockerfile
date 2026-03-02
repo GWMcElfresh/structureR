@@ -64,16 +64,13 @@ COPY DESCRIPTION NAMESPACE ./
 
 # Step 1: install remotes, devtools, and testthat explicitly so they are always
 # present in the deps image regardless of which DESCRIPTION fields reference them
-RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
-    install.packages(c('remotes', 'devtools', 'testthat'))"
+RUN Rscript -e "install.packages(c('remotes', 'devtools', 'testthat'))"
 
 # Step 2: install all hard dependencies (Imports/Depends) declared in DESCRIPTION
-RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
-    remotes::install_deps('.', dependencies = 'strong')"
+RUN Rscript -e "remotes::install_deps('.', dependencies = 'strong')"
 
 # Step 3: install Suggests. Fail if any fail to ensure robustness for tests.
-RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org'), warn = 2); \
-    remotes::install_deps('.', dependencies = TRUE)"
+RUN Rscript -e "options(warn = 2); remotes::install_deps('.', dependencies = TRUE)"
 
 # ----------------------------------------------------------------------------
 # runtime stage – copy application code and install the package itself
@@ -84,7 +81,6 @@ WORKDIR /workspace
 COPY . .
 
 # Build and install the package (compiles Rcpp)
-RUN Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
-    devtools::install('.', upgrade = 'never')"
+RUN Rscript -e "devtools::install('.', upgrade = 'never')"
 
 CMD ["Rscript", "-e", "library(structureR); cat('structureR loaded successfully\\n')"]
