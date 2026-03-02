@@ -1,6 +1,6 @@
 Package: structureR
 Title: Factor-Vine Hierarchical Copula Modeling for Single-Cell Data
-Version: 0.1.2
+Version: 0.1.3
 Authors@R:
     person("GW", "McElfresh", role = c("aut", "cre"),
            email = "gwmcelfresh@users.noreply.github.com")

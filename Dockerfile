@@ -23,11 +23,13 @@ ARG SKIP_BASE_DEPS=false
 #   libgit2-dev        – gert (used by devtools/usethis)
 #   libharfbuzz-dev    – textshaping / ragg (used by devtools)
 #   libfribidi-dev     – textshaping / ragg
-#   libfreetype6-dev   – systemfonts / ragg
+#   libfreetype6-dev   – systemfonts / ragg (ft2build.h)
 #   libfontconfig1-dev – systemfonts
 #   libpng-dev         – ragg / png
 #   libtiff5-dev       – ragg / tiff
 #   libjpeg-dev        – ragg / jpeg
+#   libwebp-dev        – ragg / webp
+#   libwebpmux-dev     – ragg / webp mux (libwebpmux)
 #   libcairo2-dev      – Cairo / grDevices
 #   libxt-dev          – X11 / grDevices (needed by some R packages)
 #   pandoc             – rmarkdown / devtools (vignette building)
@@ -43,6 +45,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libpng-dev \
         libtiff5-dev \
         libjpeg-dev \
+        libwebp-dev \
+        libwebpmux-dev \
         libcairo2-dev \
         libxt-dev \
         zlib1g-dev \
