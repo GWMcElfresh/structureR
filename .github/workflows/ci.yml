@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, "copilot/**"]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    uses: GWMcElfresh/dockerDependencies/.github/workflows/docker-cache.yml@main
+    with:
+      # Path to the Dockerfile (repo root)
+      dockerfile-path: "."
+      context: "."
+      # Run the full package test suite inside the container.
+      # The deps image has all dependencies pre-installed; the workspace is
+      # bind-mounted at /workspace, so devtools::test() picks up the source.
+      test-command: "Rscript -e \"devtools::test(stop_on_failure = TRUE)\""
+      # Dependency-file inputs used to compute the cache key
+      dependency-files: "DESCRIPTION NAMESPACE"
+      # R version to install in the deps image
+      r-version: "4.4.0"
+      # Skip building the separate runtime image for CI tests –
+      # tests run against the deps image with the workspace mounted.
+      skip-runtime: true
+      # Push the deps image to GHCR so it is reused on subsequent runs.
+      push-images: true
+    secrets: inherit
