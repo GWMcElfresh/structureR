@@ -1,0 +1,35 @@
+Package: structureR
+Title: Factor-Vine Hierarchical Copula Modeling for Single-Cell Data
+Version: 0.1.3
+Authors@R:
+    person("GW", "McElfresh", role = c("aut", "cre"),
+           email = "gwmcelfresh@users.noreply.github.com")
+Description: Models multi-level dependencies in single-cell data using
+    Factor-Vine Hierarchical Copulas. Extracts three distinct data layers
+    from a Seurat Object -- subject-level metadata, computed cellular
+    proportions, and gene expression -- and fits a hierarchical dependency
+    structure that isolates a dominant covariate (e.g., disease state) as a
+    latent or primary factor. Provides tools for marginal transformation,
+    vine fitting, and counterfactual simulation.
+License: GPL-3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+LinkingTo:
+    Rcpp
+Imports:
+    Rcpp,
+    rvinecopulib,
+    stats,
+    methods
+Suggests:
+    Seurat,
+    ggplot2,
+    dplyr,
+    testthat (>= 3.0.0),
+    devtools,
+    knitr,
+    rmarkdown,
+    covr
+Config/testthat/edition: 3
+VignetteBuilder: knitr
