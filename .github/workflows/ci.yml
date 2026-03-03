@@ -28,4 +28,6 @@ jobs:
       r-version: "4.4.0"
       # Push the deps image to GHCR so it is reused on subsequent runs.
       push-images: true
+      # Also build & push the runtime image (package baked in) on main/master.
+      push-runtime: true
     secrets: inherit
